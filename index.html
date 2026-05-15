@@ -272,30 +272,12 @@
   async function convertToAnime(imageDataUrl, apiKey) {
     showStatus('loading', '① 写真をアニメ風に変換中...（20〜40秒）', true);
 
-    // Step1: fal storageに画像アップロード（URLが必要なため）
-    let imageUrl = null;
-    try {
-      const blob = await (await fetch(imageDataUrl)).blob();
-      const upRes = await fetch('https://fal.run/fal-ai/storage/upload', {
-        method: 'POST',
-        headers: { 'Authorization': `Key ${apiKey}` },
-        body: blob,
-      });
-      if (upRes.ok) {
-        const upData = JSON.parse(await upRes.text());
-        imageUrl = upData.url || upData.access_url || null;
-      }
-    } catch(e) {}
-
-    if (!imageUrl) throw new Error('画像のアップロードに失敗しました。ネットワーク接続を確認してください。');
-
-    // Step2: FLUX Kontext Pro で同期実行（fal.run = 直接結果返却）
-    showStatus('loading', '① アニメ変換APIに送信中...', true);
+    // base64をそのまま送信（ストレージアップロード不要）
     const res = await fetch('https://fal.run/fal-ai/flux-pro/kontext', {
       method: 'POST',
       headers: { 'Authorization': `Key ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        image_url: imageUrl,
+        image_url: imageDataUrl,
         prompt: 'Convert this photo into webtoon anime illustration style. Clean lineart, vibrant colors, beautiful detailed face, soft cel shading, manhwa korean comic style. Keep the same person and pose.',
         guidance_scale: 3.5,
         num_images: 1,
